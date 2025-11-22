@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, Volume2, Mic } from 'lucide-react';
-import { chatApi, ChatMessage } from '@/services/api';
+import { useState, useRef, useEffect } from "react";
+import { Send, Volume2, Mic, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { chatApi, ChatMessage } from "@/services/api";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -29,13 +30,13 @@ export default function ChatPage() {
     if (!messageText.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
-      role: 'user',
+      role: "user",
       content: messageText,
       timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
     setIsLoading(true);
 
     try {
@@ -46,31 +47,56 @@ export default function ChatPage() {
       });
 
       const assistantMessage: ChatMessage = {
-        role: 'assistant',
+        role: "assistant",
         content: response.message,
         timestamp: new Date().toISOString(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
-      
+      setMessages((prev) => [...prev, assistantMessage]);
+
       if (response.suggestions) {
         setSuggestions(response.suggestions);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
+    } catch (error: any) {
+      console.error("Error sending message:", error);
+      let errorContent = "Desculpe, ocorreu um erro ao processar sua mensagem.";
+
+      // Try to get a user-friendly error message
+      if (error?.formattedMessage) {
+        errorContent = error.formattedMessage;
+      } else if (error?.response?.data?.detail) {
+        errorContent = error.response.data.detail;
+      } else if (error?.response?.data?.message) {
+        errorContent = error.response.data.message;
+      } else if (error?.message) {
+        errorContent = error.message;
+      } else if (typeof error === "string") {
+        errorContent = error;
+      }
+
+      // Format authentication errors more clearly
+      if (
+        errorContent.includes("401") ||
+        errorContent.includes("authentication_error") ||
+        errorContent.includes("x-api-key")
+      ) {
+        errorContent =
+          "Erro de autenticação: Verifique se as chaves de API estão configuradas corretamente no servidor.";
+      }
+
       const errorMessage: ChatMessage = {
-        role: 'assistant',
-        content: 'Desculpe, ocorreu um erro. Tente novamente.',
+        role: "assistant",
+        content: errorContent,
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
@@ -79,10 +105,26 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm p-4">
+      <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-primary-600">Voz da Lei - Chat</h1>
-          <p className="text-gray-600">Pergunte sobre qualquer lei ou projeto</p>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition text-gray-700 hover:text-primary-600 font-medium"
+              title="Voltar para página inicial"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="hidden sm:inline">Voltar</span>
+            </Link>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-primary-600">
+                Voz da Lei - Chat
+              </h1>
+              <p className="text-gray-600 text-sm">
+                Pergunte sobre qualquer lei ou projeto
+              </p>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -114,16 +156,40 @@ export default function ChatPage() {
           {messages.map((message, idx) => (
             <div
               key={idx}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
                 className={`max-w-2xl p-4 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white shadow'
+                  message.role === "user"
+                    ? "bg-primary-600 text-white"
+                    : "bg-white shadow"
                 }`}
               >
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <div className="break-words overflow-wrap-anywhere min-w-0">
+                  {message.content.includes("Error") ||
+                  message.content.includes("erro") ||
+                  message.content.includes("401") ||
+                  message.content.includes("authentication_error") ? (
+                    <div className="space-y-2">
+                      <p className="font-semibold mb-2">
+                        {message.role === "assistant"
+                          ? "Erro ao processar mensagem:"
+                          : "Erro:"}
+                      </p>
+                      <div className="text-sm bg-red-50 border border-red-200 p-3 rounded overflow-x-auto max-w-full">
+                        <pre className="whitespace-pre-wrap break-all text-red-800 font-mono text-xs">
+                          {message.content}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap break-words overflow-wrap-anywhere leading-relaxed text-sm">
+                      {message.content}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           ))}
