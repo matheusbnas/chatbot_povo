@@ -1,14 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Enable standalone output for Docker
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  // No Vercel, não usar standalone (é para Docker)
+  // output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   images: {
-    domains: ['localhost'],
+    domains: ["localhost"],
   },
   env: {
-    API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

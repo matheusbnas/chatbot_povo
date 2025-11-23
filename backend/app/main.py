@@ -19,9 +19,24 @@ app = FastAPI(
 )
 
 # Configurar CORS
+# Processar CORS_ORIGINS: pode ser string separada por vírgulas ou "*" para permitir tudo
+cors_origins = settings.CORS_ORIGINS
+if isinstance(cors_origins, str):
+    if cors_origins.strip() == "*":
+        # Permitir qualquer origem (útil para desenvolvimento/teste)
+        cors_origins = ["*"]
+    else:
+        # Separar por vírgula e limpar espaços
+        cors_origins = [origin.strip()
+                        for origin in cors_origins.split(",") if origin.strip()]
+elif isinstance(cors_origins, list):
+    cors_origins = cors_origins
+else:
+    cors_origins = ["*"]  # Fallback
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

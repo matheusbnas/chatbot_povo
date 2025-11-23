@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Union
 
 
 class Settings(BaseSettings):
@@ -31,7 +32,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # CORS
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:3001"]
+    # Aceita string separada por vírgulas ou lista JSON
+    # Exemplo: "http://localhost:3000,https://app.vercel.app"
+    # Para permitir qualquer origem em desenvolvimento: "*"
+    CORS_ORIGINS: Union[str, list] = "http://localhost:3000,http://localhost:3002"
 
     # Audio
     MAX_AUDIO_SIZE_MB: int = 25
