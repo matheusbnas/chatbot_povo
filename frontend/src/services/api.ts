@@ -99,8 +99,18 @@ export const chatApi = {
   },
   
   getSuggestions: async (): Promise<string[]> => {
-    const response = await api.get('/chat/suggestions');
-    return response.data.suggestions;
+    try {
+      const response = await api.get('/chat/suggestions');
+      return response.data.suggestions || [];
+    } catch (error: any) {
+      // Se for erro de conexão, lançar erro específico
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        const networkError = new Error('Backend não está disponível');
+        (networkError as any).code = 'ERR_NETWORK';
+        throw networkError;
+      }
+      throw error;
+    }
   },
 };
 

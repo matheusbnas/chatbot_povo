@@ -1,46 +1,33 @@
-import Link from 'next/link';
-import { MessageSquare, Search, FileText, Volume2, Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
+import Link from "next/link";
+import {
+  MessageSquare,
+  Search,
+  FileText,
+  Volume2,
+  Sparkles,
+  ArrowRight,
+  ChevronRight,
+} from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50">
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 rounded-xl shadow-lg">
-                <Sparkles className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">Voz da Lei</h1>
-                <p className="text-xs sm:text-sm text-gray-600 mt-0.5">A democracia que você entende</p>
-              </div>
-            </div>
-            <nav className="hidden md:flex gap-2">
-              <Link href="/chat" className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium">
-                Chat
-              </Link>
-              <Link href="/search" className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium">
-                Buscar
-              </Link>
-              <Link href="/trending" className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium">
-                Em Destaque
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navigation />
 
       <main className="max-w-7xl mx-auto px-4 py-12 sm:py-20 sm:px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in">
-          <div className="inline-block mb-6 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-sm font-semibold text-blue-700">
-            Powered by IA
-          </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Entenda as Leis de<br />Forma <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">Simples e Clara</span>
+            Entenda as Leis de
+            <br />
+            Forma{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              Simples e Clara
+            </span>
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
-            Conectamos você às decisões legislativas através de IA, traduzindo o juridiquês para linguagem que todos entendem.
+            Conectamos você às decisões legislativas através de IA, traduzindo o
+            juridiquês para linguagem que todos entendem.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
@@ -51,10 +38,10 @@ export default function Home() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              href="/search"
+              href="/publications"
               className="inline-flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 transition-all border-2 border-gray-200 hover:border-blue-200"
             >
-              Explorar Leis
+              Ver Projetos de Lei
             </Link>
           </div>
         </div>
@@ -96,7 +83,8 @@ export default function Home() {
               Pronto para participar da democracia?
             </h3>
             <p className="text-lg sm:text-xl mb-10 text-blue-100 max-w-2xl mx-auto">
-              Comece agora a entender e acompanhar as decisões que afetam sua vida
+              Comece agora a entender e acompanhar as decisões que afetam sua
+              vida
             </p>
             <Link
               href="/chat"
@@ -110,16 +98,26 @@ export default function Home() {
 
         <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
           <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">10k+</div>
+            <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
+              10k+
+            </div>
             <div className="text-gray-600 font-medium">Leis Simplificadas</div>
           </div>
           <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">50k+</div>
-            <div className="text-gray-600 font-medium">Consultas Respondidas</div>
+            <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
+              50k+
+            </div>
+            <div className="text-gray-600 font-medium">
+              Consultas Respondidas
+            </div>
           </div>
           <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">100%</div>
-            <div className="text-gray-600 font-medium">Gratuito e Acessível</div>
+            <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
+              100%
+            </div>
+            <div className="text-gray-600 font-medium">
+              Gratuito e Acessível
+            </div>
           </div>
         </div>
       </main>
@@ -134,12 +132,28 @@ export default function Home() {
               <h3 className="text-2xl font-bold">Voz da Lei</h3>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
-              Democratizando o acesso à legislação brasileira através de inteligência artificial
+              Democratizando o acesso à legislação brasileira através de
+              inteligência artificial
             </p>
             <div className="flex gap-6 mb-6">
-              <Link href="/chat" className="text-gray-400 hover:text-white transition-colors">Chat</Link>
-              <Link href="/search" className="text-gray-400 hover:text-white transition-colors">Buscar</Link>
-              <Link href="/trending" className="text-gray-400 hover:text-white transition-colors">Em Destaque</Link>
+              <Link
+                href="/chat"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Chat
+              </Link>
+              <Link
+                href="/search"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Buscar
+              </Link>
+              <Link
+                href="/trending"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Em Destaque
+              </Link>
             </div>
             <div className="border-t border-gray-700 pt-6 w-full">
               <p className="text-gray-500 text-sm">
@@ -167,7 +181,9 @@ function FeatureCard({ icon, title, description, href }: FeatureCardProps) {
         <div className="bg-gradient-to-br from-blue-50 to-sky-50 w-16 h-16 rounded-xl flex items-center justify-center mb-4 group-hover:from-blue-100 group-hover:to-sky-100 transition-colors">
           <div className="text-blue-600">{icon}</div>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{title}</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
+          {title}
+        </h3>
         <p className="text-gray-600 leading-relaxed mb-3">{description}</p>
         <div className="flex items-center text-blue-600 font-medium text-sm group-hover:gap-2 transition-all">
           Saiba mais
