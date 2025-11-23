@@ -7,6 +7,7 @@ import {
   Tag,
   ExternalLink,
   Volume2,
+  VolumeX,
   Filter,
   Loader2,
   X,
@@ -465,12 +466,22 @@ export default function Publications() {
 
   const speakText = (text: string, id: string) => {
     if ("speechSynthesis" in window) {
+      // Se já está falando esta mensagem, parar
+      if (speakingId === id) {
+        window.speechSynthesis.cancel();
+        setSpeakingId(null);
+        return;
+      }
+
+      // Parar qualquer fala anterior
       window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "pt-BR";
       utterance.rate = 0.9;
       utterance.onstart = () => setSpeakingId(id);
       utterance.onend = () => setSpeakingId(null);
+      utterance.onerror = () => setSpeakingId(null);
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -791,19 +802,30 @@ export default function Publications() {
                   <p className="text-gray-800 leading-relaxed">
                     {project.simplified_summary}
                   </p>
-                  <button
-                    onClick={() =>
-                      speakText(project.simplified_summary, project.id)
-                    }
-                    className="mt-3 flex items-center space-x-2 text-blue-700 hover:text-blue-800 font-medium"
-                  >
-                    <Volume2 className="h-5 w-5" />
-                    <span>
-                      {speakingId === project.id
-                        ? "Falando..."
-                        : "Ouvir explicação"}
-                    </span>
-                  </button>
+                  {speakingId === project.id ? (
+                    <button
+                      onClick={() => {
+                        if ("speechSynthesis" in window) {
+                          window.speechSynthesis.cancel();
+                        }
+                        setSpeakingId(null);
+                      }}
+                      className="mt-3 flex items-center space-x-2 text-red-700 hover:text-red-800 font-medium p-2 rounded-lg bg-red-50 hover:bg-red-100 transition-colors border border-red-200"
+                    >
+                      <VolumeX className="h-5 w-5" />
+                      <span>Parar</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        speakText(project.simplified_summary, project.id)
+                      }
+                      className="mt-3 flex items-center space-x-2 text-blue-700 hover:text-blue-800 font-medium"
+                    >
+                      <Volume2 className="h-5 w-5" />
+                      <span>Ouvir explicação</span>
+                    </button>
+                  )}
                 </div>
 
                 <div className="mb-4">

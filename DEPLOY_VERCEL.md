@@ -71,6 +71,23 @@ CORS_ORIGINS=["https://seu-app.vercel.app","https://www.seu-dominio.com"]
 
 **💡 Dica**: O arquivo `vercel.json` na raiz tem comandos que fazem `cd frontend`, mas a melhor forma é configurar o **Root Directory** no painel do Vercel. Isso faz o Vercel executar todos os comandos dentro de `frontend/` automaticamente.
 
+**🔧 Se o build falhar com erro de CSS/Webpack:**
+
+1. **Limpe o cache do Vercel:**
+   - Vá em **Settings** → **General**
+   - Role até **Build & Development Settings**
+   - Clique em **Clear Build Cache**
+   - Confirme a ação
+
+2. **Verifique se o Root Directory está configurado:**
+   - Deve estar como `frontend` (não `/frontend` ou `./frontend`)
+
+3. **Faça um novo deploy:**
+   - Vá em **Deployments**
+   - Clique nos 3 pontos do último deploy
+   - Selecione **Redeploy**
+   - Marque **"Use existing Build Cache"** como **desmarcado**
+
 ### 2.3. Variáveis de Ambiente
 
 Adicione estas variáveis de ambiente no Vercel:

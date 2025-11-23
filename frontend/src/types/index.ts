@@ -4,10 +4,11 @@ export interface NavigationProps {
 }
 
 export interface ChatMessage {
-  id: string;
+  id?: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp: Date;
+  timestamp: string | Date;
+  audio_url?: string;
 }
 
 export interface LegislativeProject {

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Sparkles, Volume2, Loader2, Copy, Check } from "lucide-react";
+import {
+  FileText,
+  Sparkles,
+  Loader2,
+  Copy,
+  Check,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { simplificationApi } from "@/services/api";
 
@@ -11,39 +19,72 @@ export default function SimplifyPage() {
   const [text, setText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
   const [level, setLevel] = useState<SimplificationLevel>("simple");
-  const [includeAudio, setIncludeAudio] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [readingTime, setReadingTime] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleSimplify = async () => {
-    if (!text.trim()) return;
+    const trimmedText = text.trim();
+
+    if (!trimmedText) {
+      alert("Por favor, digite um texto para simplificar.");
+      return;
+    }
+
+    if (trimmedText.length < 10) {
+      alert("O texto deve ter pelo menos 10 caracteres para ser simplificado.");
+      return;
+    }
 
     setIsLoading(true);
     setSimplifiedText("");
-    setAudioUrl(null);
     setReadingTime(null);
 
     try {
-      const result = await simplificationApi.simplify({
-        text: text.trim(),
+      const requestData = {
+        text: trimmedText,
         target_level: level,
-        include_audio: includeAudio,
-      });
+        include_audio: false,
+      };
+
+      console.log("Enviando requisição de simplificação:", requestData);
+
+      const result = await simplificationApi.simplify(requestData);
 
       setSimplifiedText(result.simplified_text);
       setReadingTime(result.reading_time_minutes);
-      if (result.audio_url) {
-        setAudioUrl(result.audio_url);
-      }
     } catch (error: any) {
       console.error("Erro ao simplificar:", error);
-      alert(
-        error?.formattedMessage ||
-          "Erro ao simplificar texto. Verifique sua conexão e tente novamente."
-      );
+
+      let errorMessage =
+        "Erro ao simplificar texto. Verifique sua conexão e tente novamente.";
+
+      if (error?.response?.status === 422) {
+        const detail = error?.response?.data?.detail;
+        if (Array.isArray(detail)) {
+          // Erros de validação do Pydantic
+          const validationErrors = detail
+            .map((err: any) => {
+              const field = err.loc?.join(".") || "campo";
+              const msg = err.msg || "erro de validação";
+              return `${field}: ${msg}`;
+            })
+            .join("\n");
+          errorMessage = `Erro de validação:\n${validationErrors}`;
+        } else if (typeof detail === "string") {
+          errorMessage = detail;
+        } else {
+          errorMessage =
+            "O texto enviado não está no formato correto. Verifique se tem pelo menos 10 caracteres.";
+        }
+      } else if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -59,13 +100,25 @@ export default function SimplifyPage() {
 
   const speakText = (textToSpeak: string) => {
     if ("speechSynthesis" in window) {
+      // Se já está falando, parar
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        return;
+      }
+
+      // Parar qualquer fala anterior
       window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
       utterance.lang = "pt-BR";
       utterance.rate = 0.9;
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
       window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn("Seu navegador não suporta síntese de voz");
     }
   };
 
@@ -106,9 +159,22 @@ export default function SimplifyPage() {
           {/* Painel Esquerdo - Entrada */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Texto Original</h2>
-              <span className="text-sm text-gray-500">
+              <h2 className="text-xl font-bold text-gray-900">
+                Texto Original
+              </h2>
+              <span
+                className={`text-sm ${
+                  text.trim().length < 10 && text.trim().length > 0
+                    ? "text-red-600 font-medium"
+                    : text.trim().length >= 10
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }`}
+              >
                 {text.length} caracteres
+                {text.trim().length > 0 && text.trim().length < 10 && (
+                  <span className="ml-1">(mínimo 10)</span>
+                )}
               </span>
             </div>
 
@@ -126,30 +192,24 @@ export default function SimplifyPage() {
                 </label>
                 <select
                   value={level}
-                  onChange={(e) => setLevel(e.target.value as SimplificationLevel)}
+                  onChange={(e) =>
+                    setLevel(e.target.value as SimplificationLevel)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="simple">Simples (Linguagem Cidadã)</option>
-                  <option value="moderate">Moderado (Linguagem Acessível)</option>
-                  <option value="technical">Técnico (Mantém Termos Jurídicos)</option>
+                  <option value="moderate">
+                    Moderado (Linguagem Acessível)
+                  </option>
+                  <option value="technical">
+                    Técnico (Mantém Termos Jurídicos)
+                  </option>
                 </select>
               </div>
 
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={includeAudio}
-                  onChange={(e) => setIncludeAudio(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">
-                  Gerar áudio da versão simplificada
-                </span>
-              </label>
-
               <button
                 onClick={handleSimplify}
-                disabled={!text.trim() || isLoading}
+                disabled={!text.trim() || text.trim().length < 10 || isLoading}
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
@@ -204,18 +264,28 @@ export default function SimplifyPage() {
                       <Copy className="w-5 h-5 text-gray-600" />
                     )}
                   </button>
-                  {simplifiedText && (
+                  {isSpeaking ? (
+                    <button
+                      onClick={() => {
+                        if ("speechSynthesis" in window) {
+                          window.speechSynthesis.cancel();
+                        }
+                        setIsSpeaking(false);
+                      }}
+                      className="p-2 rounded-lg bg-red-50 hover:bg-red-100 transition-colors flex items-center gap-2 text-sm text-red-700 border border-red-200"
+                      title="Parar áudio"
+                    >
+                      <VolumeX className="w-5 h-5 text-red-600" />
+                      <span className="font-medium">Parar</span>
+                    </button>
+                  ) : (
                     <button
                       onClick={() => speakText(simplifiedText)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-2 text-sm text-blue-700"
                       title="Ouvir texto"
-                      disabled={isSpeaking}
                     >
-                      <Volume2
-                        className={`w-5 h-5 ${
-                          isSpeaking ? "text-blue-600" : "text-gray-600"
-                        }`}
-                      />
+                      <Volume2 className="w-5 h-5" />
+                      <span>Ouvir</span>
                     </button>
                   )}
                 </div>
@@ -232,19 +302,8 @@ export default function SimplifyPage() {
 
                 {readingTime && (
                   <div className="text-sm text-gray-600">
-                    ⏱️ Tempo estimado de leitura: {readingTime.toFixed(1)} minutos
-                  </div>
-                )}
-
-                {audioUrl && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="text-sm font-medium text-gray-700 mb-2">
-                      Áudio gerado:
-                    </p>
-                    <audio controls className="w-full">
-                      <source src={audioUrl} type="audio/mpeg" />
-                      Seu navegador não suporta áudio.
-                    </audio>
+                    ⏱️ Tempo estimado de leitura: {readingTime.toFixed(1)}{" "}
+                    minutos
                   </div>
                 )}
               </div>
@@ -266,17 +325,21 @@ export default function SimplifyPage() {
           </h3>
           <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
             <div>
-              <div className="font-semibold text-gray-900 mb-1">1. Cole o texto</div>
+              <div className="font-semibold text-gray-900 mb-1">
+                1. Cole o texto
+              </div>
               <p>Cole qualquer texto jurídico que deseja simplificar</p>
             </div>
             <div>
-              <div className="font-semibold text-gray-900 mb-1">2. Escolha o nível</div>
-              <p>
-                Selecione o nível de simplificação adequado ao seu público
-              </p>
+              <div className="font-semibold text-gray-900 mb-1">
+                2. Escolha o nível
+              </div>
+              <p>Selecione o nível de simplificação adequado ao seu público</p>
             </div>
             <div>
-              <div className="font-semibold text-gray-900 mb-1">3. Obtenha o resultado</div>
+              <div className="font-semibold text-gray-900 mb-1">
+                3. Obtenha o resultado
+              </div>
               <p>
                 Receba o texto em linguagem clara e acessível, pronto para
                 compartilhar
@@ -288,4 +351,3 @@ export default function SimplifyPage() {
     </div>
   );
 }
-

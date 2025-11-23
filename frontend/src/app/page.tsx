@@ -55,7 +55,7 @@ export default function Home() {
           />
           <FeatureCard
             icon={<FileText className="w-10 h-10" />}
-            title="Simplificação"
+            title="Simplifiquei"
             description="Textos jurídicos em linguagem simples e acessível"
             href="/simplify"
           />

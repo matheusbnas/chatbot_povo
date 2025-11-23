@@ -35,6 +35,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp?: string;
+  audio_url?: string;
 }
 
 export interface ChatRequest {
