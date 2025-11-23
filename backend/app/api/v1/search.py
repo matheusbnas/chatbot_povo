@@ -30,9 +30,37 @@ async def search_legislation(request: SearchRequest):
         if use_lexml and year_filter:
             # Buscar no LexML por ano
             try:
+                # Aplicar filtros de tipo e fonte no LexML
+                tipo_filter = request.filters.get(
+                    "type") if request.filters else None
+                source_filter = request.filters.get(
+                    "source") if request.filters else None
+
+                # Mapear tipo para tipo_documento do LexML
+                tipo_documento = None
+                if tipo_filter:
+                    if tipo_filter == "PL":
+                        tipo_documento = "Projeto de Lei"
+                    elif tipo_filter == "PEC":
+                        tipo_documento = "Proposta de Emenda à Constituição"
+                    elif tipo_filter == "PLP":
+                        tipo_documento = "Projeto de Lei Complementar"
+                    elif tipo_filter == "PLV":
+                        tipo_documento = "Projeto de Lei de Conversão"
+
+                # Mapear fonte para autoridade do LexML
+                autoridade = None
+                if source_filter:
+                    if source_filter == "camara":
+                        autoridade = "Câmara dos Deputados"
+                    elif source_filter == "senado":
+                        autoridade = "Senado Federal"
+
                 lexml_results = await lexml_client.search_by_keywords(
                     keywords="lei",  # Termo genérico
                     year=year_filter,
+                    tipo_documento=tipo_documento,
+                    autoridade=autoridade,
                     limit=request.page_size
                 )
 
@@ -69,11 +97,37 @@ async def search_legislation(request: SearchRequest):
                     else:
                         status = "Em tramitação"
 
-                    # Aplicar filtro de status se especificado
+                    # Aplicar filtros se especificados
                     status_filter = request.filters.get(
                         "status") if request.filters else None
+                    tipo_filter = request.filters.get(
+                        "type") if request.filters else None
+
+                    # Filtrar por status
                     if status_filter:
                         if status and status_filter.lower() not in status.lower():
+                            continue
+
+                    # Filtrar por tipo
+                    if tipo_filter:
+                        doc_type = doc.get("tipo_documento", "").upper()
+                        tipo_upper = tipo_filter.upper()
+                        # Verificar correspondência de tipo de forma mais precisa
+                        tipo_match = False
+                        if tipo_upper == "PEC":
+                            tipo_match = "EMENDA" in doc_type or "PEC" in doc_type or "CONSTITUIÇÃO" in doc_type
+                        elif tipo_upper == "PL":
+                            tipo_match = (
+                                "PROJETO DE LEI" in doc_type or "PL " in doc_type) and "PEC" not in doc_type and "PLP" not in doc_type and "PLV" not in doc_type
+                        elif tipo_upper == "PLP":
+                            tipo_match = "LEI COMPLEMENTAR" in doc_type or "PLP" in doc_type
+                        elif tipo_upper == "PLV":
+                            tipo_match = "LEI DE CONVERSÃO" in doc_type or "PLV" in doc_type
+                        else:
+                            # Para outros tipos, verificar se contém o tipo
+                            tipo_match = tipo_upper in doc_type
+
+                        if not tipo_match:
                             continue
 
                     results.append(LegislationSimplified(
@@ -105,11 +159,21 @@ async def search_legislation(request: SearchRequest):
                     f"Erro ao buscar no LexML por ano, tentando Câmara: {str(e)}")
 
         # Buscar na Câmara dos Deputados (padrão ou fallback)
-        propositions = await camara_client.search_propositions(
-            keywords=request.query if request.query and request.query.strip() != "*" else None,
-            year=request.filters.get("year") if request.filters else None,
-            limit=request.page_size
-        )
+        tipo_filter = request.filters.get("type") if request.filters else None
+        source_filter = request.filters.get(
+            "source") if request.filters else None
+
+        # Se o filtro de fonte for "senado", não buscar na Câmara
+        if source_filter and source_filter.lower() == "senado":
+            # Buscar no Senado ou LexML
+            propositions = []
+        else:
+            propositions = await camara_client.search_propositions(
+                keywords=request.query if request.query and request.query.strip() != "*" else None,
+                year=request.filters.get("year") if request.filters else None,
+                sigla_tipo=tipo_filter,  # Aplicar filtro de tipo
+                limit=request.page_size
+            )
 
         # Converter para formato padronizado
         results = []
@@ -147,13 +211,28 @@ async def search_legislation(request: SearchRequest):
                 # Se não tiver status, assumir "Em tramitação" por padrão
                 status = "Em tramitação"
 
-            # Aplicar filtro de status se especificado
+            # Aplicar filtros se especificados
             if status_filter:
                 status_lower = status.lower() if status else ""
                 filter_lower = status_filter.lower()
                 # Verificar se o status corresponde ao filtro
                 if filter_lower not in status_lower and (not situacao_lower or filter_lower not in situacao_lower):
                     continue  # Pular se não corresponder ao filtro
+
+            # Aplicar filtro de tipo
+            if tipo_filter:
+                prop_type = prop.get("siglaTipo", "").upper()
+                tipo_upper = tipo_filter.upper()
+                if prop_type != tipo_upper:
+                    continue  # Pular se o tipo não corresponder
+
+            # Aplicar filtro de fonte (já aplicado na busca, mas verificar novamente)
+            if source_filter:
+                source_lower = source_filter.lower()
+                if source_lower == "senado":
+                    continue  # Se for Senado, não incluir resultados da Câmara
+                elif source_lower == "camara" and prop.get("siglaTipo", ""):
+                    pass  # Incluir se for Câmara
 
             results.append(LegislationSimplified(
                 id=prop_id,
@@ -217,8 +296,8 @@ async def get_available_filters():
     from datetime import datetime
     current_year = datetime.now().year
     # Incluir anos desde 1988 (Constituição) até o ano atual
+    # Ordem crescente: mais antigos primeiro
     years = list(range(1988, current_year + 1))
-    years.reverse()  # Mais recentes primeiro
 
     return {
         "types": ["PL", "PEC", "PLP", "PLV"],

@@ -437,7 +437,7 @@ export default function Publications() {
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
 
-  // Aplicar filtros de categoria e status no frontend
+  // Aplicar filtros de categoria, status e tipo no frontend (como backup)
   const filteredProjects = projects.filter((project) => {
     const matchesCategory =
       selectedCategory === "all" || project.category === selectedCategory;
@@ -449,7 +449,18 @@ export default function Publications() {
         (project.status.toLowerCase().includes(filters.status.toLowerCase()) ||
           filters.status.toLowerCase().includes(project.status.toLowerCase())));
 
-    return matchesCategory && matchesStatus;
+    // Aplicar filtro de tipo no frontend (como backup)
+    const matchesType =
+      !filters.type ||
+      (project.original_number &&
+        // Verificar se o tipo está no início do original_number (ex: "PEC 123/2024")
+        project.original_number
+          .toUpperCase()
+          .startsWith(filters.type.toUpperCase() + " ")) ||
+      (project.originalData?.type &&
+        project.originalData.type.toUpperCase() === filters.type.toUpperCase());
+
+    return matchesCategory && matchesStatus && matchesType;
   });
 
   const speakText = (text: string, id: string) => {
@@ -598,11 +609,11 @@ export default function Publications() {
 
             {/* Filtros Avançados */}
             {showFilters && (
-              <div className="border-t border-gray-200 pt-4 mt-4">
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="border-t border-gray-200 pt-4 mt-4 pb-8 mb-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
                   {availableFilters && (
                     <>
-                      <div>
+                      <div className="relative" style={{ zIndex: 1000 }}>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <Calendar className="w-4 h-4 inline mr-1" />
                           Ano
@@ -612,7 +623,13 @@ export default function Publications() {
                           onChange={(e) =>
                             setFilters({ ...filters, year: e.target.value })
                           }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center",
+                            paddingRight: "2.5rem",
+                          }}
                         >
                           <option value="">Todos os anos</option>
                           {availableFilters.years?.map((year: number) => (
@@ -623,7 +640,7 @@ export default function Publications() {
                         </select>
                       </div>
 
-                      <div>
+                      <div className="relative">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <FileText className="w-4 h-4 inline mr-1" />
                           Tipo
@@ -633,7 +650,13 @@ export default function Publications() {
                           onChange={(e) =>
                             setFilters({ ...filters, type: e.target.value })
                           }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center",
+                            paddingRight: "2.5rem",
+                          }}
                         >
                           <option value="">Todos os tipos</option>
                           {availableFilters.types?.map((type: string) => (
@@ -644,7 +667,7 @@ export default function Publications() {
                         </select>
                       </div>
 
-                      <div>
+                      <div className="relative">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <MapPin className="w-4 h-4 inline mr-1" />
                           Fonte
@@ -654,7 +677,13 @@ export default function Publications() {
                           onChange={(e) =>
                             setFilters({ ...filters, source: e.target.value })
                           }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center",
+                            paddingRight: "2.5rem",
+                          }}
                         >
                           <option value="">Todas as fontes</option>
                           {availableFilters.sources?.map((source: string) => (
@@ -665,7 +694,7 @@ export default function Publications() {
                         </select>
                       </div>
 
-                      <div>
+                      <div className="relative">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Status
                         </label>
@@ -674,7 +703,13 @@ export default function Publications() {
                           onChange={(e) =>
                             setFilters({ ...filters, status: e.target.value })
                           }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center",
+                            paddingRight: "2.5rem",
+                          }}
                         >
                           <option value="">Todos os status</option>
                           {availableFilters.status?.map((status: string) => (
