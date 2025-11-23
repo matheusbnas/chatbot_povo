@@ -130,7 +130,7 @@ curl http://localhost:8000/api/v1/legislation/trending?limit=5
 ## 📚 Próximos Passos
 
 1. **Explore a API**: http://localhost:8000/docs
-2. **Leia a documentação**: Veja DOCS.md
+2. **Leia a documentação**: Veja os arquivos em `backend/docs/`
 3. **Customize**: Ajuste cores, textos e funcionalidades
 4. **Adicione funcionalidades**: Use a estrutura modular
 
@@ -160,8 +160,8 @@ curl http://localhost:8000/api/v1/legislation/trending?limit=5
 ## 📞 Suporte
 
 - Issues: Abra uma issue no GitHub
-- Documentação: Leia DOCS.md
-- Email: suporte@vozdalei.org (exemplo)
+- Documentação: Veja `backend/docs/` para documentação técnica
+- Email: matheusbnas@gmail.com
 
 ## 🎉 Pronto!
 

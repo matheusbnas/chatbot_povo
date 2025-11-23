@@ -22,8 +22,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 async def test_get_full_text():
     """Testar obtenção de texto completo usando uma URN real"""
 
-    # URN de exemplo do LexML (PLS 489/2008 do Senado)
-    test_urn = "urn:lex:br:senado.federal:projeto.lei;pls:2008;489"
+    # URN de exemplo do LexML (PL 1694/2025 - projeto recente)
+    test_urn = "urn:lex:br:camara.deputados:projeto.lei;pl:2025;1694"
 
     print("=" * 80)
     print("TESTE: Extração de Texto Completo do LexML")
@@ -89,8 +89,8 @@ async def test_search_and_extract():
 
     try:
         # Buscar projetos de lei recentes
-        print("\n1. Buscando projetos de lei do ano 2008...")
-        projects = await lexml_client.search_projects_of_law(year=2008, limit=3)
+        print("\n1. Buscando projetos de lei do ano 2025...")
+        projects = await lexml_client.search_projects_of_law(year=2025, limit=3)
 
         print(f"[OK] Encontrados {len(projects)} projetos")
 
@@ -117,12 +117,46 @@ async def test_search_and_extract():
         traceback.print_exc()
 
 
+async def test_search_2025_by_urn():
+    """Testar busca de 2025 usando query URN como no exemplo"""
+    
+    print("\n" + "=" * 80)
+    print("TESTE: Busca de 2025 usando query URN")
+    print("=" * 80)
+    
+    try:
+        # Query exata do exemplo: urn="2025"
+        print("\n1. Buscando documentos com URN contendo '2025'...")
+        query = 'urn="2025"'
+        result = await lexml_client.search(query, maximum_records=5)
+        
+        print(f"[OK] Encontrados {result.get('total', 0)} documentos no total")
+        print(f"Retornando {len(result.get('records', []))} registros")
+        
+        records = result.get('records', [])
+        for i, doc in enumerate(records[:3], 1):
+            print(f"\n--- Documento {i} ---")
+            print(f"Título: {doc.get('title', 'N/A')}")
+            print(f"Tipo: {doc.get('tipo_documento', 'N/A')}")
+            print(f"Data: {doc.get('date', 'N/A')}")
+            print(f"URN: {doc.get('urn', 'N/A')}")
+            print(f"Localidade: {doc.get('localidade', 'N/A')}")
+            if doc.get('description'):
+                print(f"Descrição: {doc.get('description', '')[:150]}...")
+        
+    except Exception as e:
+        print(f"\n[ERRO] Erro durante o teste: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
     print("\n[TESTE] Iniciando testes do LexML...\n")
 
     # Executar testes
     asyncio.run(test_get_full_text())
     asyncio.run(test_search_and_extract())
+    asyncio.run(test_search_2025_by_urn())
 
     print("\n" + "=" * 80)
     print("[OK] Testes concluidos!")

@@ -430,5 +430,5 @@ Sempre disponível em:
 
 **Para mais informações, veja:**
 - README.md - Visão geral do projeto
-- DOCS.md - Documentação técnica completa
 - QUICKSTART.md - Guia de início rápido
+- backend/docs/ - Documentação técnica completa

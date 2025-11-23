@@ -7,7 +7,7 @@ Este teste valida:
 3. Obtenção de texto completo (quando disponível)
 4. Busca de projetos de lei (PLS)
 """
-from app.integrations.legislative_apis import senado_client
+from app.integrations.senado_api import senado_client
 import asyncio
 import sys
 from pathlib import Path
@@ -25,8 +25,8 @@ async def test_search_legislation():
 
     try:
         # Buscar legislação recente
-        print("\n1. Buscando legislação do ano 2023...")
-        results = await senado_client.search_legislation(year=2023, limit=5)
+        print("\n1. Buscando legislação do ano 2025...")
+        results = await senado_client.search_legislation(year=2025, limit=5)
 
         if results:
             print(f"[OK] Encontradas {len(results)} legislações")
@@ -69,8 +69,8 @@ async def test_search_projects_of_law():
     print("=" * 80)
 
     try:
-        print("\n1. Buscando PLS do ano 2022...")
-        projects = await senado_client.search_projects_of_law(year=2022, limit=3)
+        print("\n1. Buscando PLS do ano 2025...")
+        projects = await senado_client.search_projects_of_law(year=2025, limit=3)
 
         if projects:
             print(f"[OK] Encontrados {len(projects)} projetos")
@@ -111,7 +111,7 @@ async def test_get_legislation_details():
     try:
         # Primeiro buscar uma legislação para ter um ID
         print("\n1. Buscando legislação para obter um ID de teste...")
-        results = await senado_client.search_legislation(year=2022, limit=1)
+        results = await senado_client.search_legislation(year=2025, limit=1)
 
         if results and results[0].get('id'):
             test_id = str(results[0]['id'])

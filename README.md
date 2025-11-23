@@ -171,12 +171,15 @@ Veja mais detalhes em [`backend/app/docs/CONFIGURAR_API.md`](backend/app/docs/CO
 ## 📚 Documentação
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Guia de início rápido detalhado
-- **[DOCS.md](DOCS.md)** - Documentação técnica completa
 - **[ARQUITETURA.txt](ARQUITETURA.txt)** - Arquitetura do sistema
-- **[MODELO_NEGOCIO_ANALISE.md](MODELO_NEGOCIO_ANALISE.md)** - Análise do modelo de negócio
 - **[COMANDOS.txt](COMANDOS.txt)** - Comandos úteis para desenvolvimento
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guia de contribuição
-- **[CHANGELOG.md](CHANGELOG.md)** - Histórico de mudanças
+- **Documentação Técnica**:
+  - [Configurar APIs](backend/app/docs/CONFIGURAR_API.md)
+  - [Como Coletar Dados](backend/docs/COMO_COLETAR.md)
+  - [Guia LexML](backend/docs/README_LEXML.md)
+  - [Guia Senado](backend/docs/SENADO_GUIA.md)
+  - [Queries Avançadas](backend/docs/QUERIES_AVANCADAS.md)
+- **Documentação de Negócio**: [docs/MODELO_NEGOCIO_ANALISE.md](docs/MODELO_NEGOCIO_ANALISE.md)
 - **API Docs**: http://localhost:8000/docs (quando o servidor estiver rodando)
 
 ## 📁 Estrutura do Projeto
