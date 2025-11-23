@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --user -r requirements.txt
+# Install Python dependencies to a temporary location
+RUN pip install --no-cache-dir --target /app/deps -r requirements.txt
 
 # ============================================
 # STAGE 2: Production
@@ -35,8 +35,8 @@ RUN apt-get update && apt-get install -y \
 # Create non-root user first
 RUN useradd -m -u 1000 appuser
 
-# Copy Python dependencies from builder to user's home
-COPY --from=builder /root/.local /home/appuser/.local
+# Copy Python dependencies from builder
+COPY --from=builder /app/deps /app/deps
 
 # Copy application
 COPY . .
@@ -45,13 +45,16 @@ COPY . .
 RUN chmod +x /app/scripts/*.py 2>/dev/null || true
 
 # Change ownership to appuser
-RUN chown -R appuser:appuser /app /home/appuser/.local
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
 
-# Add local bin to PATH (now pointing to appuser's home)
-ENV PATH=/home/appuser/.local/bin:$PATH
+# Add deps to Python path
+# Quando pip install --target é usado, os módulos ficam em lib/python3.11/site-packages
+# Mas podemos adicionar /app/deps diretamente e Python encontrará automaticamente
+ENV PYTHONPATH=/app/deps/lib/python3.11/site-packages:/app:$PYTHONPATH
+ENV PATH=/app/deps/bin:$PATH
 
 # Expose port
 EXPOSE 8080
@@ -61,7 +64,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
 # Run application (sem reload em produção, com workers)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
+# Usar python -m para garantir que encontre os módulos
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
 
 # ============================================
 # STAGE 3: Development

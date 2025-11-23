@@ -55,10 +55,12 @@ bcrypt==4.0.1
 
 # Utilitários
 pydantic[email]
+pydantic-settings
 requests
 aiohttp
 pytz
 magic-wormhole
+loguru
 
 # Performance e cache (opcional)
 redis
@@ -70,6 +72,8 @@ supabase
 # Dependências adicionais
 langsmith
 sqlalchemy
+psycopg2-binary
+alembic
 
 # Dependências específicas do LangChain (versões compatíveis)
 langchain-community
