@@ -9,6 +9,17 @@ const nextConfig = {
   env: {
     API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   },
+  // Configuração para garantir processamento correto do CSS
+  webpack: (config, { isServer }) => {
+    // Garantir que o CSS seja processado corretamente
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
