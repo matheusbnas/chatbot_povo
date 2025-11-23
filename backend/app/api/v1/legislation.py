@@ -58,6 +58,21 @@ async def get_trending_legislation(limit: int = Query(10, ge=1, le=50)):
                 # ID numérico baseado no hash
                 doc_id = abs(hash(urn)) % (10 ** 10)
 
+            # Determinar status baseado nos dados do LexML
+            status = None
+            # O LexML pode ter informações de status no campo 'dc_type' ou outros campos
+            dc_type = doc.get("dc_type", "").lower(
+            ) if doc.get("dc_type") else ""
+            if "aprovado" in dc_type or "aprovada" in dc_type:
+                status = "Aprovado"
+            elif "rejeitado" in dc_type or "rejeitada" in dc_type:
+                status = "Rejeitado"
+            elif "arquivado" in dc_type or "arquivada" in dc_type:
+                status = "Arquivado"
+            else:
+                # Por padrão, projetos de lei do LexML estão em tramitação
+                status = "Em tramitação"
+
             result.append(LegislationSimplified(
                 id=int(doc_id) if doc_id else abs(hash(urn)) % (10 ** 10),
                 type=doc.get("tipo_documento", "Documento"),
@@ -66,10 +81,12 @@ async def get_trending_legislation(limit: int = Query(10, ge=1, le=50)):
                 title=title,
                 summary=doc.get("description", "")[
                     :200] + "..." if doc.get("description") else "",
-                status=None,
+                status=status,
                 author=doc.get("autoridade"),
                 presentation_date=None,
-                tags=None
+                tags=None,
+                urn=urn,
+                identifier=doc.get("lexml_id") or urn
             ))
 
         return result[:limit]

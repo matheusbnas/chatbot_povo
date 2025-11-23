@@ -20,6 +20,8 @@ import { Legislation } from "@/services/api";
 interface ProjectWithSimplification extends LegislativeProject {
   originalData?: Legislation;
   isLoadingSimplification?: boolean;
+  sourceUrl?: string;
+  urn?: string;
 }
 
 export default function Publications() {
@@ -127,6 +129,89 @@ export default function Publications() {
     }
   };
 
+  const buildSourceUrl = (legislation: any): string | undefined => {
+    // Se identifier já for uma URL (vindo da Câmara), usar diretamente
+    if (legislation.identifier && legislation.identifier.startsWith("http")) {
+      return legislation.identifier;
+    }
+
+    // Tentar construir URL baseada nos dados disponíveis
+    const urn =
+      legislation.urn ||
+      (legislation.identifier && !legislation.identifier.startsWith("http")
+        ? legislation.identifier
+        : null);
+    const type = legislation.type || "";
+    const number = legislation.number || "";
+    const year = legislation.year || "";
+    const id = legislation.id;
+
+    // Se tiver URN do LexML, usar busca no LexML com a URN
+    if (urn) {
+      // Normalizar URN - remover espaços e garantir formato correto
+      let normalizedUrn = String(urn).trim();
+      if (!normalizedUrn.startsWith("urn:lex:")) {
+        normalizedUrn = `urn:lex:br:${normalizedUrn}`;
+      }
+      // URL pública do LexML para buscar o documento
+      // Formato correto: https://www.lexml.gov.br/busca?q=urn:"urn:lex:..."
+      // Sem porta 8080, sem barra antes do ?
+      // Usar formato de query correto para o LexML
+      const query = `urn:"${normalizedUrn}"`;
+      // Construir URL sem porta e sem barra extra
+      const baseUrl = "https://www.lexml.gov.br/busca";
+      return `${baseUrl}?q=${encodeURIComponent(query)}`;
+    }
+
+    // Se for da Câmara (baseado no tipo ou ID)
+    if (
+      id &&
+      (type.includes("PL") ||
+        type.includes("PEC") ||
+        type.includes("PLP") ||
+        type.includes("PLV"))
+    ) {
+      // URL pública da Câmara para visualizar proposição
+      return `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${id}`;
+    }
+
+    // Se for do Senado (PLS, PLC, PEC, etc)
+    if (
+      type &&
+      (type.includes("PLS") ||
+        type.includes("PLC") ||
+        type.includes("PEC") ||
+        type.includes("PL"))
+    ) {
+      // URL pública do Senado - usar busca por tipo, número e ano
+      if (number && year && number !== "N/A") {
+        return `https://www25.senado.leg.br/web/atividade/materias/-/materia/consulta/por-numero?tipo=${encodeURIComponent(
+          type
+        )}&numero=${number}&ano=${year}`;
+      }
+      // Se tiver ID, tentar URL direta
+      if (id) {
+        return `https://www25.senado.leg.br/web/atividade/materias/-/materia/${id}`;
+      }
+    }
+
+    // Fallback: buscar no LexML por tipo/número/ano
+    if (type && number && year && number !== "N/A") {
+      // URL correta sem porta e sem barra antes do ?
+      return `https://www.lexml.gov.br/busca?q=${encodeURIComponent(
+        `${type} ${number} ${year}`
+      )}`;
+    }
+
+    // Último fallback: busca genérica no LexML
+    if (type) {
+      // URL correta sem porta e sem barra antes do ?
+      return `https://www.lexml.gov.br/busca?q=${encodeURIComponent(type)}`;
+    }
+
+    return undefined;
+  };
+
   const convertToProject = (
     legislation: Legislation,
     simplifiedText: string
@@ -137,19 +222,24 @@ export default function Publications() {
     // Determinar categoria baseada em tags ou título
     const category = determineCategory(legislation);
 
+    // Construir URL da fonte original
+    const sourceUrl = buildSourceUrl(legislation);
+
     return {
       id: String(legislation.id),
       title: `${legislation.type} ${legislation.number}/${legislation.year} - ${legislation.title}`,
       original_number: `${legislation.type} ${legislation.number}/${legislation.year}`,
       summary: legislation.summary || legislation.title,
       simplified_summary: simplifiedText,
-      status: legislation.status || "Em tramitação",
+      status: legislation.status || "Em tramitação", // Manter status do backend se disponível
       category: category,
       published_at: legislation.presentation_date
         ? new Date(legislation.presentation_date).toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
       impacts: impacts,
       originalData: legislation,
+      sourceUrl: sourceUrl,
+      urn: (legislation as any).urn || (legislation as any).identifier,
     };
   };
 
@@ -245,11 +335,6 @@ export default function Publications() {
   };
 
   const handleSearch = async (searchPage: number = 1) => {
-    if (!searchTerm.trim()) {
-      loadInitialProjects();
-      return;
-    }
-
     setIsLoading(true);
     try {
       const searchFilters: any = {};
@@ -258,13 +343,62 @@ export default function Publications() {
       if (filters.source) searchFilters.source = filters.source;
       if (filters.status) searchFilters.status = filters.status;
 
-      const result = await searchApi.search({
-        query: searchTerm.trim(),
-        filters:
-          Object.keys(searchFilters).length > 0 ? searchFilters : undefined,
-        page: searchPage,
-        page_size: pageSize,
-      });
+      let result;
+
+      if (searchTerm.trim()) {
+        // Busca com termo
+        result = await searchApi.search({
+          query: searchTerm.trim(),
+          filters:
+            Object.keys(searchFilters).length > 0 ? searchFilters : undefined,
+          page: searchPage,
+          page_size: pageSize,
+        });
+      } else {
+        // Sem termo de busca
+        if (Object.keys(searchFilters).length > 0) {
+          // Se houver filtros ativos, fazer busca genérica com filtros
+          // Usar um termo genérico que retorna todos os resultados
+          try {
+            result = await searchApi.search({
+              query: "lei", // Termo genérico para buscar todas as leis
+              filters: searchFilters,
+              page: searchPage,
+              page_size: pageSize,
+            });
+          } catch (error) {
+            // Se falhar, carregar trending e filtrar no frontend
+            console.warn("Erro ao buscar com filtros, usando trending:", error);
+            const trending = await legislationApi.getTrending(pageSize * 2);
+            // Filtrar no frontend baseado nos filtros
+            let filtered = trending;
+            if (searchFilters.year) {
+              filtered = filtered.filter((l) => l.year === searchFilters.year);
+            }
+            if (searchFilters.type) {
+              filtered = filtered.filter((l) => l.type === searchFilters.type);
+            }
+            result = {
+              total: filtered.length,
+              page: searchPage,
+              page_size: pageSize,
+              results: filtered.slice(
+                (searchPage - 1) * pageSize,
+                searchPage * pageSize
+              ),
+            };
+          }
+        } else {
+          // Sem filtros, carregar trending
+          const trending = await legislationApi.getTrending(pageSize);
+          result = {
+            total: trending.length,
+            page: searchPage,
+            page_size: pageSize,
+            results: trending,
+          };
+        }
+      }
 
       // Enriquecer cada resultado com simplificação
       const enrichedProjects = await Promise.all(
@@ -303,10 +437,19 @@ export default function Publications() {
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
 
+  // Aplicar filtros de categoria e status no frontend
   const filteredProjects = projects.filter((project) => {
     const matchesCategory =
       selectedCategory === "all" || project.category === selectedCategory;
-    return matchesCategory;
+
+    // Aplicar filtro de status no frontend também (como backup)
+    const matchesStatus =
+      !filters.status ||
+      (project.status &&
+        (project.status.toLowerCase().includes(filters.status.toLowerCase()) ||
+          filters.status.toLowerCase().includes(project.status.toLowerCase())));
+
+    return matchesCategory && matchesStatus;
   });
 
   const speakText = (text: string, id: string) => {
@@ -643,15 +786,27 @@ export default function Publications() {
                 </div>
 
                 <div className="pt-4 border-t border-gray-200">
-                  <details className="group">
-                    <summary className="cursor-pointer text-blue-700 hover:text-blue-800 font-medium flex items-center">
+                  {project.sourceUrl ? (
+                    <a
+                      href={project.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-blue-700 hover:text-blue-800 font-medium transition-colors"
+                    >
                       <span>Ver texto oficial completo</span>
                       <ExternalLink className="h-4 w-4 ml-1" />
-                    </summary>
-                    <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-4 rounded">
-                      {project.summary}
-                    </p>
-                  </details>
+                    </a>
+                  ) : (
+                    <details className="group">
+                      <summary className="cursor-pointer text-blue-700 hover:text-blue-800 font-medium flex items-center">
+                        <span>Ver texto oficial completo</span>
+                        <ExternalLink className="h-4 w-4 ml-1" />
+                      </summary>
+                      <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-4 rounded">
+                        {project.summary}
+                      </p>
+                    </details>
+                  )}
                 </div>
               </div>
             </div>

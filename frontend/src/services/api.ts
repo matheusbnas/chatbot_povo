@@ -62,6 +62,8 @@ export interface Legislation {
   author?: string;
   presentation_date?: string;
   tags?: string[];
+  urn?: string;
+  identifier?: string;
 }
 
 export interface SimplificationRequest {

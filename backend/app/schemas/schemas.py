@@ -45,6 +45,8 @@ class LegislationSimplified(BaseModel):
     author: Optional[str] = None
     presentation_date: Optional[datetime] = None
     tags: Optional[List[str]] = None
+    urn: Optional[str] = None
+    identifier: Optional[str] = None
     
     class Config:
         from_attributes = True

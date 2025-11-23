@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Backend API
@@ -8,7 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://vozdalei:vozdalei123@postgres:5432/vozdalei
+      - DATABASE_URL=postgresql://vozdalei:vozdalei123@postgres:5432/vozdalei_bd
       - REDIS_URL=redis://redis:6379
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
@@ -60,7 +60,7 @@ services:
     container_name: vozdalei-celery
     command: celery -A app.celery_app worker --loglevel=info
     environment:
-      - DATABASE_URL=postgresql://vozdalei:vozdalei123@postgres:5432/vozdalei
+      - DATABASE_URL=postgresql://vozdalei:vozdalei123@postgres:5432/vozdalei_bd
       - REDIS_URL=redis://redis:6379
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
