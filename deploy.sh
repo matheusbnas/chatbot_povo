@@ -142,7 +142,7 @@ else
 fi
 
 # Frontend health check
-if curl -f http://localhost:3000 > /dev/null 2>&1; then
+if curl -f http://localhost:3002 > /dev/null 2>&1; then
     print_success "Frontend está respondendo!"
 else
     print_warning "Frontend pode não estar totalmente pronto ainda."
@@ -154,7 +154,7 @@ print_success "Deploy concluído!"
 echo ""
 print_info "📋 Próximos passos:"
 echo "  1. Verifique os logs: docker-compose -f docker-compose.prod.yml logs -f"
-echo "  2. Acesse o frontend: http://localhost:3000"
+echo "  2. Acesse o frontend: http://localhost:3002"
 echo "  3. Acesse a API: http://localhost:3001"
 echo "  4. Documentação da API: http://localhost:3001/docs"
 echo ""

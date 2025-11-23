@@ -18,8 +18,8 @@ Guia passo a passo para fazer deploy do projeto no **Coolify**.
    - **Repository URL**: `https://github.com/matheusbnas/chatbot_voz_da_lei`
    - **Branch**: `main`
    - **Build Pack**: `Dockerfile`
-   - **Base Directory**: `/` (raiz do projeto)
-   - **Dockerfile Location**: `backend/Dockerfile`
+   - **Base Directory**: `backend/` ⚠️ **IMPORTANTE**: Use `backend/` como base!
+   - **Dockerfile Location**: `Dockerfile` (relativo ao Base Directory)
    - **Docker Build Stage Target**: `production`
    - **Port**: `8080` (porta interna do container)
    - **Name**: `vozdalei-backend` (ou outro nome de sua preferência)
@@ -88,10 +88,10 @@ Na seção **"General"** → **"Build"**:
    - **Repository URL**: `https://github.com/matheusbnas/chatbot_voz_da_lei`
    - **Branch**: `main`
    - **Build Pack**: `Dockerfile`
-   - **Base Directory**: `/` (raiz do projeto)
-   - **Dockerfile Location**: `frontend/Dockerfile`
+   - **Base Directory**: `frontend/` ⚠️ **IMPORTANTE**: Use `frontend/` como base!
+   - **Dockerfile Location**: `Dockerfile` (relativo ao Base Directory)
    - **Docker Build Stage Target**: `production`
-   - **Port**: `3000`
+   - **Port**: `3002`
    - **Name**: `vozdalei-frontend` (ou outro nome de sua preferência)
 
 ### 7. Configurar Variáveis de Ambiente do Frontend
@@ -162,8 +162,8 @@ curl https://seudominio.com
      - **Path**: `/health`
      - **Port**: `8080`
    - **Frontend**:
-     - **Path**: `/`
-     - **Port**: `3000`
+   - **Path**: `/`
+   - **Port**: `3002`
 
 ### Custom Docker Options (Opcional)
 
@@ -243,7 +243,7 @@ O Coolify fornece:
 - [ ] Frontend criado no Coolify
 - [ ] **Dockerfile Location**: `frontend/Dockerfile` configurado
 - [ ] **Docker Build Stage Target**: `production` preenchido
-- [ ] **Port**: `3000` configurado
+- [ ] **Port**: `3002` configurado
 - [ ] PostgreSQL configurado (ou serviço externo)
 - [ ] Redis configurado (ou serviço externo)
 - [ ] Variáveis de ambiente configuradas
@@ -259,7 +259,7 @@ O Coolify fornece:
 
 1. **Repositório**: https://github.com/matheusbnas/chatbot_voz_da_lei
 2. **Porta Backend**: `8080` (interna do container)
-3. **Porta Frontend**: `3000` (interna do container)
+3. **Porta Frontend**: `3002` (interna do container)
 4. **Banco de Dados**: `vozdalei_bd`
 5. **Dockerfile Target**: Use `production` para ambos
 6. **Base Directory**: `/` (raiz do projeto)

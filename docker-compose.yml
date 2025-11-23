@@ -28,9 +28,10 @@ services:
       target: development
     container_name: vozdalei-frontend
     ports:
-      - "3000:3000"
+      - "3002:3002"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - PORT=3002
     volumes:
       - ./frontend:/app
       - /app/node_modules

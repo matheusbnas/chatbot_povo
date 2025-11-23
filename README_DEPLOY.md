@@ -148,7 +148,7 @@ http {
     }
 
     upstream frontend {
-        server frontend:3000;
+        server frontend:3002;
     }
 
     # Redirect HTTP to HTTPS
@@ -322,7 +322,7 @@ docker-compose -f docker-compose.prod.yml logs -f backend
 curl http://localhost:3001/health
 
 # Health check do frontend
-curl http://localhost:3000
+curl http://localhost:3002
 
 # API Docs
 curl http://localhost:3001/docs
@@ -478,7 +478,7 @@ docker-compose -f docker-compose.prod.yml up -d frontend
 ```bash
 # Verificar qual processo está usando a porta
 sudo lsof -i :3001
-sudo lsof -i :3000
+sudo lsof -i :3002
 
 # Parar processo ou mudar porta no docker-compose.prod.yml
 ```

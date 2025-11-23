@@ -47,15 +47,16 @@ USER nextjs
 # Set environment to production
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:3002 || exit 1
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3002
 
-# Start application
+# Start application (Next.js usa PORT env var automaticamente)
 CMD ["npm", "start"]
 
 # ============================================
@@ -75,7 +76,8 @@ RUN npm install
 COPY . .
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3002
 
-# Run development server
-CMD ["npm", "run", "dev"]
+# Run development server (Next.js usa variável PORT)
+ENV PORT=3002
+CMD ["npm", "run", "dev", "--", "-p", "3002"]
