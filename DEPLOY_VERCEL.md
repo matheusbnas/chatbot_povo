@@ -54,15 +54,22 @@ CORS_ORIGINS=["https://seu-app.vercel.app","https://www.seu-dominio.com"]
 
 ### 2.2. Configurar Projeto
 
-**Configurações do Build:**
+**⚠️ IMPORTANTE**: Configure o **Root Directory** no painel do Vercel!
+
+1. No painel do Vercel, vá em **Settings** → **General**
+2. Role até **Root Directory**
+3. Digite: `frontend`
+4. Clique em **Save**
+
+**Configurações do Build (serão aplicadas automaticamente após configurar Root Directory):**
 
 - **Framework Preset**: `Next.js` (detectado automaticamente)
-- **Root Directory**: `frontend` ⚠️ **IMPORTANTE** - Configure isso no painel do Vercel!
-- **Build Command**: `npm run build` (padrão, será executado dentro de `frontend/`)
+- **Root Directory**: `frontend` ⚠️ **CONFIGURE NO PAINEL!**
+- **Build Command**: `npm run build` (padrão)
 - **Output Directory**: `.next` (padrão)
-- **Install Command**: `npm install` (padrão, será executado dentro de `frontend/`)
+- **Install Command**: `npm install` (padrão)
 
-**💡 Dica**: O arquivo `vercel.json` na raiz do projeto já está configurado para apontar para `frontend/`. Mas você ainda precisa configurar o **Root Directory** no painel do Vercel como `frontend`.
+**💡 Dica**: O arquivo `vercel.json` na raiz tem comandos que fazem `cd frontend`, mas a melhor forma é configurar o **Root Directory** no painel do Vercel. Isso faz o Vercel executar todos os comandos dentro de `frontend/` automaticamente.
 
 ### 2.3. Variáveis de Ambiente
 
