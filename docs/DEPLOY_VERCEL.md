@@ -117,6 +117,11 @@ Adicione estas variáveis de ambiente no Vercel:
 2. Aguarde o build (2-3 minutos)
 3. ✅ Pronto! Seu frontend estará no ar
 
+**⚠️ Se você adicionou/modificou `NEXT_PUBLIC_API_URL` após o deploy:**
+- Você **DEVE** fazer **Redeploy** para a variável ser aplicada
+- Vá em **Deployments** → **3 pontos** → **Redeploy**
+- **Desmarque** "Use existing Build Cache"
+
 ---
 
 ## 🔗 Passo 3: Verificar Conexão
@@ -151,13 +156,40 @@ Adicione estas variáveis de ambiente no Vercel:
 2. Reinicie o container do backend no Coolify
 3. Verifique se a URL está correta (com `https://` se aplicável)
 
-### Erro: "Network Error" ou "Backend não está disponível"
+### Erro: "Network Error" ou "Backend não está disponível" ou `localhost:8080`
+
+**Sintomas:**
+- Console mostra: `localhost:8080/api/v1/...` - ERR_CONNECTION_REFUSED
+- Frontend tentando acessar `localhost` ao invés da URL do backend
 
 **Solução:**
 
-1. Verifique se `NEXT_PUBLIC_API_URL` está configurada corretamente no Vercel
-2. Teste se o backend está acessível: abra `http://seu-backend:3001/health` no navegador
-3. Verifique se o firewall permite conexões do Vercel
+1. **Verifique se `NEXT_PUBLIC_API_URL` está configurada no Vercel:**
+   - Vá em **Settings** → **Environment Variables**
+   - Deve ter `NEXT_PUBLIC_API_URL` com a URL do backend
+   - Exemplo: `http://31.97.16.142:8080`
+
+2. **⚠️ CRÍTICO: Faça REDEPLOY após adicionar a variável!**
+   - Variáveis `NEXT_PUBLIC_*` são injetadas no **build time**
+   - Vá em **Deployments** → **3 pontos** → **Redeploy**
+   - **Desmarque** "Use existing Build Cache"
+   - Aguarde o build completar
+
+3. **Teste se o backend está acessível:**
+   ```bash
+   curl http://SEU_IP:8080/health
+   # Deve retornar: {"status": "healthy"}
+   ```
+
+4. **Verifique no Console do navegador:**
+   - Após o redeploy, abra o site
+   - Console (F12) → Network
+   - Verifique se as requisições estão indo para a URL correta (não `localhost`)
+
+**Se ainda aparecer `localhost`:**
+- A variável não foi aplicada no build
+- Faça outro redeploy (sem cache)
+- Verifique se a variável está salva no Vercel
 
 ### Frontend não encontra o backend
 

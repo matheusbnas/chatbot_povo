@@ -109,8 +109,8 @@ A forma mais simples de executar o projeto é usando Docker Compose:
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/matheusbnas/chatbot_povo.git
-cd chatbot_povo
+git clone https://github.com/matheusbnas/chatbot_voz_da_lei.git
+cd chatbot_voz_da_lei
 
 # 2. Configure as variáveis de ambiente
 # Copie o arquivo de exemplo e edite com suas chaves de API
@@ -286,7 +286,6 @@ curl -X POST "http://localhost:8000/api/v1/chat/" \
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Guia de início rápido detalhado
 - **[ARQUITETURA.txt](ARQUITETURA.txt)** - Arquitetura do sistema
-- **[COMANDOS.txt](COMANDOS.txt)** - Comandos úteis para desenvolvimento
 
 ### Documentação Técnica
 
@@ -320,7 +319,7 @@ curl -X POST "http://localhost:8000/api/v1/chat/" \
 ## 📁 Estrutura do Projeto
 
 ```
-chatbot_povo/
+chatbot_voz_da_lei/
 ├── backend/                 # Backend FastAPI
 │   ├── app/
 │   │   ├── api/            # Endpoints da API
